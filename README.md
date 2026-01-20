@@ -15,7 +15,8 @@ Thư viện widgets dùng chung cho các dự án Flutter, hỗ trợ tự độ
 dependencies:
   common_widget:
     git:
-      url: https://github.com/your-username/common_widget.git
+      url: https://github.com/tuan-urani/common_widget
+      ref: main
 ```
 
 2. Chạy lệnh đồng bộ:
