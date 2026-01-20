@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:isolate';
 
 /// Script này sẽ được đặt trong repo common_widget tại đường dẫn: bin/common_widget.dart
 /// Khi người dùng chạy 'dart run common_widget', Dart sẽ thực thi file này.
@@ -31,14 +32,23 @@ void main(List<String> args) async {
   print('🚀 Đang xử lý cho project: $projectName');
 
   // 3. Xác định thư mục nguồn (Source - chính là thư mục lib của package common_widget này)
-  // Khi chạy qua 'dart run', Platform.script sẽ trỏ đến file này trong pub cache
-  final scriptPath = Platform.script.toFilePath();
-  // bin/common_widget.dart -> lên 2 cấp là root của package
-  final packageRootPath = File(scriptPath).parent.parent.path;
-  final sourceDir = Directory('$packageRootPath/lib');
+  // Sử dụng Isolate.resolvePackageUri để tìm đường dẫn thực tế của package:common_widget/
+  // Cách này hoạt động chính xác ngay cả khi package nằm trong pub cache (khi dùng Git)
+  final packageUri = await Isolate.resolvePackageUri(
+    Uri.parse('package:common_widget/'),
+  );
+
+  if (packageUri == null) {
+    print(
+      '❌ Lỗi: Không thể xác định vị trí package common_widget trong pub cache.',
+    );
+    return;
+  }
+
+  final sourceDir = Directory(packageUri.toFilePath());
 
   if (!sourceDir.existsSync()) {
-    print('❌ Lỗi: Không tìm thấy thư mục nguồn tại $packageRootPath/lib');
+    print('❌ Lỗi: Không tìm thấy thư mục nguồn tại ${sourceDir.path}');
     return;
   }
 
