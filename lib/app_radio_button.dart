@@ -7,10 +7,12 @@ class AppRadioOption {
   final String label;
   final Widget? leading;
 
+
   const AppRadioOption({
     required this.value,
     required this.label,
     this.leading,
+
   });
 }
 
@@ -22,6 +24,8 @@ class AppRadioGroup extends StatelessWidget {
   final TextStyle? textStyle;
   final Color? activeColor;
   final double iconSize;
+    final String iconChecked;
+  final String iconUnchecked;
 
   const AppRadioGroup({
     super.key,
@@ -32,6 +36,8 @@ class AppRadioGroup extends StatelessWidget {
     this.textStyle,
     this.activeColor,
     this.iconSize = 20,
+        this.iconChecked = "",
+    this.iconUnchecked = "",
   });
 
   @override
@@ -53,8 +59,8 @@ class AppRadioGroup extends StatelessWidget {
                       width: iconSize,
                       height: iconSize,
                       selected
-                          ? AppAssets.icons_radio_check_svg
-                          : AppAssets.icons_radio_uncheck_svg,
+                          ? iconChecked,
+                          : iconUnchecked,
                     ),
                     Text(option.label, style: textStyle),
                   ],

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:link_home/src/utils/app_assets.dart';
 import 'package:link_home/src/utils/app_colors.dart';
 import 'package:link_home/src/utils/app_styles.dart';
@@ -128,15 +127,7 @@ class _AppInputState extends State<AppInput> {
           suffixIcon:
               widget.isPassword
                   ? IconButton(
-                    icon: SvgPicture.asset(
-                      _obscure
-                          ? AppAssets.icons_hide_eye_svg
-                          : AppAssets.icons_show_eye_svg,
-                      colorFilter: ColorFilter.mode(
-                        AppColors.color1C274C,
-                        BlendMode.srcIn,
-                      ),
-                    ),
+                    icon: _obscure ? Icon(Icons.visibility_off) : Icon(Icons.visibility),
                     onPressed: () => setState(() => _obscure = !_obscure),
                   )
                   : widget.suffixIcon != null

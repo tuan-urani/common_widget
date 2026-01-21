@@ -8,6 +8,7 @@ import 'package:link_home/src/utils/app_styles.dart';
 class AppDropdown<T> extends StatefulWidget {
   final String? label;
   final String? hint;
+  final String pathIcon;
   final T? value;
   final List<DropdownMenuItem<T>> items;
   final ValueChanged<T?> onChanged;
@@ -27,6 +28,7 @@ class AppDropdown<T> extends StatefulWidget {
     this.textStyle,
     this.labelStyle,
     this.hintTextStyle,
+    this.pathIcon = '',
   });
 
   @override
@@ -71,7 +73,7 @@ class _AppDropdownState<T> extends State<AppDropdown<T>> {
         items: widget.items,
         onChanged: widget.onChanged,
         iconSize: 10,
-        icon: SvgPicture.asset(AppAssets.icons_chevron_down_svg),
+        icon: SvgPicture.asset(widget.pathIcon),
         decoration: InputDecoration(
           labelText: widget.label,
           labelStyle:
