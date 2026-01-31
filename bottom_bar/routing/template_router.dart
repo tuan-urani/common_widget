@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:get/get.dart';
 import 'package:link_home/src/ui/routing/common_router.dart';
 
 class SettingRouter {
