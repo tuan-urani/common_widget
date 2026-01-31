@@ -34,3 +34,24 @@ dart run common_widget
 ## Lưu ý cho người phát triển
 
 - Khi trong lib này bạn muốn thêm mới 1 common component nào đó thì những chỗ import project bạn hãy dùng prefix `package:link_home/` thay thế cho dự án hiện tại trước khi push nó lên repository. Vì mọi import trong thư mục `lib/` nên sử dụng prefix `package:link_home/` để script có thể nhận diện và thay thế tự động khi đồng bộ sang dự án khác.
+
+## Tạo Bottom Bar
+
+Chạy tại thư mục gốc của dự án Flutter (nơi có `pubspec.yaml`):
+
+```bash
+dart run common_widget:common_bottom_bar --type standard --tabs home,user,settings
+```
+
+### Tham số
+
+- `--type`:
+  - `standard`: dạng không có nút ở giữa (không có Positioned button).
+  - `top-notch`: dạng có nút ở giữa (có Positioned button).
+- `--tabs`: danh sách tab, phân tách bằng dấu phẩy. Ví dụ: `home,user,settings`.
+
+### Output
+
+- `bottom_navigation_page.dart` → `Project/lib/src/enums/`
+- Thư mục `main` (UI của bottom bar) → `Project/lib/src/ui/`
+- Thư mục `routing` → `Project/lib/src/ui/`
