@@ -70,4 +70,4 @@ Sẽ tạo sẵn template bottom bar với cấu trúc sau:
 Việc bạn cần làm để sử dụng bottom bar theo ý mình:
 
 1. Trong `main_page.dart`: tại function `_createPage`, thay `builder: (_) => const SizedBox.shrink()` thành `onGenerateRoute: {tabRouter}.onGenerateRoute,` (ví dụ: `onGenerateRoute: HomeRouter.onGenerateRoute,`).
-2. Thay thế icon trong `app_bottom_navigation_bar.dart` thành icon của tab tương ứng.
+2. Thay thế icon trong `bottom_navigation_page.dart` thành icon của tab tương ứng.
