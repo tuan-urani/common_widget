@@ -1,44 +1,50 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:link_home/src/enums/bottom_navigation_page.dart';
+import 'package:link_home/src/ui/main/bloc/main_bloc.dart';
+import 'package:link_home/src/ui/main/bloc/main_event.dart';
+import 'package:link_home/src/ui/main/bloc/main_state.dart';
 
 class AppBottomNavigationBar extends StatelessWidget {
   const AppBottomNavigationBar({
     super.key,
-    required this.currentPage,
-    required this.onChanged,
   });
-
-  final BottomNavigationPage currentPage;
-  final ValueChanged<BottomNavigationPage> onChanged;
 
   @override
   Widget build(BuildContext context) {
-    final tabs = BottomNavigationPage.values;
-    final currentIndex = tabs.indexOf(currentPage);
+    return BlocBuilder<MainBloc, MainState>(
+      buildWhen:
+          (previous, current) => previous.currentPage != current.currentPage,
+      builder: (context, state) {
+        final bloc = context.read<MainBloc>();
+        final tabs = BottomNavigationPage.values;
+        final currentIndex = tabs.indexOf(state.currentPage);
 
-    return SizedBox(
-      height: 72,
-      child: Container(
-        height: 72,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(20),
-            topRight: Radius.circular(20),
-          ),
-        ),
-        child: SafeArea(
-          top: false,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: _buildItems(
-              tabs: tabs,
-              currentIndex: currentIndex,
-              onChanged: onChanged,
+        return SizedBox(
+          height: 72,
+          child: Container(
+            height: 72,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
+              ),
+            ),
+            child: SafeArea(
+              top: false,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: _buildItems(
+                  tabs: tabs,
+                  currentIndex: currentIndex,
+                  onChanged: (page) => bloc.add(OnChangeTabEvent(page)),
+                ),
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 

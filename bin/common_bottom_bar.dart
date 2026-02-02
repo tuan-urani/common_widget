@@ -59,6 +59,16 @@ void main(List<String> args) async {
     componentsDir.createSync(recursive: true);
   }
 
+  final blocDir = Directory('${mainUiDir.path}/bloc');
+  if (!blocDir.existsSync()) {
+    blocDir.createSync(recursive: true);
+  }
+
+  final bindingDir = Directory('${mainUiDir.path}/binding');
+  if (!bindingDir.existsSync()) {
+    bindingDir.createSync(recursive: true);
+  }
+
   final packageRoot = await _resolvePackageRoot();
 
   final bottomNavigationPageTemplate = await _readTemplateFile(
@@ -96,16 +106,58 @@ void main(List<String> args) async {
     _applyDynamicPackagePrefix(bottomNavTemplate, projectName),
   );
 
+  final initialPage = tabs.first;
+
+  final mainEventTemplate = await _readTemplateFile(
+    packageRoot: packageRoot,
+    relativePath: 'bottom_bar/templates/main_event.dart.tpl',
+    fallback: _fallbackMainEventTemplate,
+  );
+  await File('${blocDir.path}/main_event.dart').writeAsString(
+    _applyDynamicPackagePrefix(
+      mainEventTemplate.replaceAll('__INITIAL_PAGE__', initialPage),
+      projectName,
+    ),
+  );
+
+  final mainStateTemplate = await _readTemplateFile(
+    packageRoot: packageRoot,
+    relativePath: 'bottom_bar/templates/main_state.dart.tpl',
+    fallback: _fallbackMainStateTemplate,
+  );
+  await File('${blocDir.path}/main_state.dart').writeAsString(
+    _applyDynamicPackagePrefix(
+      mainStateTemplate.replaceAll('__INITIAL_PAGE__', initialPage),
+      projectName,
+    ),
+  );
+
+  final mainBlocTemplate = await _readTemplateFile(
+    packageRoot: packageRoot,
+    relativePath: 'bottom_bar/templates/main_bloc.dart.tpl',
+    fallback: _fallbackMainBlocTemplate,
+  );
+  await File('${blocDir.path}/main_bloc.dart').writeAsString(
+    _renderMainBlocFromTemplate(
+      template: mainBlocTemplate,
+      projectName: projectName,
+      tabs: tabs,
+    ),
+  );
+
+  final mainBindingTemplate = await _readTemplateFile(
+    packageRoot: packageRoot,
+    relativePath: 'bottom_bar/templates/main_binding.dart.tpl',
+    fallback: _fallbackMainBindingTemplate,
+  );
+  await File('${bindingDir.path}/main_binding.dart').writeAsString(
+    _applyDynamicPackagePrefix(mainBindingTemplate, projectName),
+  );
+
   final mainPageTemplate = await _readTemplateFile(
     packageRoot: packageRoot,
-    relativePath:
-        type == _BottomBarType.topNotch
-            ? 'bottom_bar/templates/main_page_top_notch.dart.tpl'
-            : 'bottom_bar/templates/main_page_standard.dart.tpl',
-    fallback:
-        type == _BottomBarType.topNotch
-            ? _fallbackMainPageTopNotchTemplate
-            : _fallbackMainPageStandardTemplate,
+    relativePath: 'bottom_bar/templates/main_page.dart.tpl',
+    fallback: _fallbackMainPageTemplate,
   );
 
   final mainPagePath = '${mainUiDir.path}/main_page.dart';
@@ -149,6 +201,10 @@ void main(List<String> args) async {
   stdout.writeln('- $bottomNavigationPagePath');
   stdout.writeln('- $bottomNavPath');
   stdout.writeln('- $mainPagePath');
+  stdout.writeln('- ${blocDir.path}/main_bloc.dart');
+  stdout.writeln('- ${blocDir.path}/main_event.dart');
+  stdout.writeln('- ${blocDir.path}/main_state.dart');
+  stdout.writeln('- ${bindingDir.path}/main_binding.dart');
   stdout.writeln('- ${routingDir.path}/common_router.dart');
   stdout.writeln('- ${routingDir.path}/*_router.dart');
 }
@@ -327,17 +383,52 @@ String _renderMainPageFromTemplate({
   required String projectName,
   required List<String> tabs,
 }) {
+  final switchLines = StringBuffer()
+    ..writeln('    final bloc = context.read<MainBloc>();')
+    ..writeln('    switch (currentPage) {');
+
+  for (var i = 0; i < tabs.length; i++) {
+    final tab = tabs[i];
+    final pascal = _pascalCase(tab);
+    switchLines
+      ..writeln('      // case BottomNavigationPage.$tab:')
+      ..writeln('      //   // if (!Get.isRegistered<${pascal}Bloc>()) {')
+      ..writeln('      //   //   ${pascal}Binding().dependencies();')
+      ..writeln('      //   // }')
+      ..writeln('      //   pages.putIfAbsent(')
+      ..writeln('      //     currentPage,')
+      ..writeln('      //     () => CupertinoTabView(')
+      ..writeln('      //       navigatorKey: bloc.tabNavKeys[$i],')
+      ..writeln('      //       onGenerateRoute: ${pascal}Router.onGenerateRoute,')
+      ..writeln('      //     ),')
+      ..writeln('      //   );')
+      ..writeln('      //   break;');
+  }
+
+  switchLines.writeln('    }');
+
+  final rendered = template.replaceAll(
+    '__CREATE_PAGE_SWITCH__',
+    switchLines.toString().trimRight(),
+  );
+
+  return _applyDynamicPackagePrefix(rendered, projectName);
+}
+
+String _renderMainBlocFromTemplate({
+  required String template,
+  required String projectName,
+  required List<String> tabs,
+}) {
   final initialPage = tabs.first;
-  final pagesEntries = tabs
-      .map(
-        (t) =>
-            '      BottomNavigationPage.$t: const _PlaceholderPage(title: \'${_tabLabel(t)}\'),',
-      )
-      .join('\n');
+  final tabNavKeys = List.generate(
+    tabs.length,
+    (_) => '    GlobalKey<NavigatorState>(),',
+  ).join('\n');
 
   final rendered = template
       .replaceAll('__INITIAL_PAGE__', initialPage)
-      .replaceAll('__PAGES_MAP_ENTRIES__', pagesEntries);
+      .replaceAll('__TAB_NAV_KEYS__', tabNavKeys);
 
   return _applyDynamicPackagePrefix(rendered, projectName);
 }
@@ -423,6 +514,141 @@ class CommonRouter {
 }
 ''';
 
+const String _fallbackMainEventTemplate = '''
+import 'package:equatable/equatable.dart';
+import 'package:link_home/src/enums/bottom_navigation_page.dart';
+
+abstract class MainEvent extends Equatable {
+  const MainEvent();
+
+  @override
+  List<Object?> get props => [];
+}
+
+class MainInitialized extends MainEvent {
+  const MainInitialized();
+}
+
+class OnChangeTabEvent extends MainEvent {
+  final BottomNavigationPage page;
+
+  const OnChangeTabEvent(this.page);
+
+  @override
+  List<Object?> get props => [page];
+}
+''';
+
+const String _fallbackMainStateTemplate = '''
+import 'package:equatable/equatable.dart';
+import 'package:link_home/src/enums/bottom_navigation_page.dart';
+
+class MainState extends Equatable {
+  final BottomNavigationPage currentPage;
+
+  const MainState({this.currentPage = BottomNavigationPage.__INITIAL_PAGE__});
+
+  MainState copyWith({BottomNavigationPage? currentPage}) {
+    return MainState(currentPage: currentPage ?? this.currentPage);
+  }
+
+  @override
+  List<Object?> get props => [currentPage];
+}
+''';
+
+const String _fallbackMainBlocTemplate = '''
+import 'package:flutter/cupertino.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:link_home/src/enums/bottom_navigation_page.dart';
+import 'package:link_home/src/ui/main/bloc/main_event.dart';
+import 'package:link_home/src/ui/main/bloc/main_state.dart';
+
+class MainBloc extends Bloc<MainEvent, MainState> {
+  final List<GlobalKey<NavigatorState>> tabNavKeys = [
+__TAB_NAV_KEYS__
+  ];
+
+  MainBloc() : super(const MainState()) {
+    on<MainInitialized>(_onInitialized);
+    on<OnChangeTabEvent>(_onChangeTab);
+  }
+
+  void _onInitialized(MainInitialized event, Emitter<MainState> emit) {
+    emit(state.copyWith(currentPage: BottomNavigationPage.__INITIAL_PAGE__));
+  }
+
+  void _onChangeTab(OnChangeTabEvent event, Emitter<MainState> emit) {
+    emit(state.copyWith(currentPage: event.page));
+  }
+}
+''';
+
+const String _fallbackMainBindingTemplate = '''
+import 'package:get/get.dart';
+import 'package:link_home/src/ui/main/bloc/main_bloc.dart';
+
+class MainBinding extends Bindings {
+  @override
+  void dependencies() {
+    Get.lazyPut<MainBloc>(() => MainBloc());
+  }
+}
+''';
+
+const String _fallbackMainPageTemplate = '''
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get/get.dart';
+import 'package:link_home/src/enums/bottom_navigation_page.dart';
+import 'package:link_home/src/ui/main/bloc/main_bloc.dart';
+import 'package:link_home/src/ui/main/bloc/main_event.dart';
+import 'package:link_home/src/ui/main/bloc/main_state.dart';
+import 'package:link_home/src/ui/main/components/app_bottom_navigation_bar.dart';
+import 'package:link_home/src/utils/app_colors.dart';
+
+Map<BottomNavigationPage, Widget> pages = {};
+
+class MainPage extends StatelessWidget {
+  const MainPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => Get.find<MainBloc>()..add(const MainInitialized()),
+      child: BlocBuilder<MainBloc, MainState>(
+        builder: (context, state) {
+          return Scaffold(
+            backgroundColor: AppColors.transparent,
+            extendBody: true,
+            extendBodyBehindAppBar: true,
+            body: BlocBuilder<MainBloc, MainState>(
+              buildWhen:
+                  (previous, current) =>
+                      previous.currentPage != current.currentPage,
+              builder: (context, state) {
+                _createPage(state.currentPage, context);
+                return IndexedStack(
+                  sizing: StackFit.expand,
+                  index: pages.keys.toList().indexOf(state.currentPage),
+                  children: pages.values.toList(),
+                );
+              },
+            ),
+            bottomNavigationBar: const AppBottomNavigationBar(),
+          );
+        },
+      ),
+    );
+  }
+
+  void _createPage(BottomNavigationPage currentPage, BuildContext context) {
+__CREATE_PAGE_SWITCH__
+  }
+}
+''';
+
 const String _fallbackBottomNavigationPageTemplate = '''
 import 'package:flutter/material.dart';
 
@@ -455,46 +681,52 @@ __INACTIVE_ICON_CASES__
 
 const String _fallbackAppBottomNavigationBarStandardTemplate = '''
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:link_home/src/enums/bottom_navigation_page.dart';
+import 'package:link_home/src/ui/main/bloc/main_bloc.dart';
+import 'package:link_home/src/ui/main/bloc/main_event.dart';
+import 'package:link_home/src/ui/main/bloc/main_state.dart';
 
 class AppBottomNavigationBar extends StatelessWidget {
   const AppBottomNavigationBar({
     super.key,
-    required this.currentPage,
-    required this.onChanged,
   });
-
-  final BottomNavigationPage currentPage;
-  final ValueChanged<BottomNavigationPage> onChanged;
 
   @override
   Widget build(BuildContext context) {
-    final tabs = BottomNavigationPage.values;
-    final currentIndex = tabs.indexOf(currentPage);
+    return BlocBuilder<MainBloc, MainState>(
+      buildWhen:
+          (previous, current) => previous.currentPage != current.currentPage,
+      builder: (context, state) {
+        final bloc = context.read<MainBloc>();
+        final tabs = BottomNavigationPage.values;
+        final currentIndex = tabs.indexOf(state.currentPage);
 
-    return SizedBox(
-      height: 72,
-      child: Container(
-        height: 72,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(20),
-            topRight: Radius.circular(20),
-          ),
-        ),
-        child: SafeArea(
-          top: false,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: _buildItems(
-              tabs: tabs,
-              currentIndex: currentIndex,
-              onChanged: onChanged,
+        return SizedBox(
+          height: 72,
+          child: Container(
+            height: 72,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
+              ),
+            ),
+            child: SafeArea(
+              top: false,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: _buildItems(
+                  tabs: tabs,
+                  currentIndex: currentIndex,
+                  onChanged: (page) => bloc.add(OnChangeTabEvent(page)),
+                ),
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -558,71 +790,77 @@ class _TabItem extends StatelessWidget {
 
 const String _fallbackAppBottomNavigationBarTopNotchTemplate = '''
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:link_home/src/enums/bottom_navigation_page.dart';
+import 'package:link_home/src/ui/main/bloc/main_bloc.dart';
+import 'package:link_home/src/ui/main/bloc/main_event.dart';
+import 'package:link_home/src/ui/main/bloc/main_state.dart';
 
 class AppBottomNavigationBar extends StatelessWidget {
   const AppBottomNavigationBar({
     super.key,
-    required this.currentPage,
-    required this.onChanged,
     this.onCenterTap,
   });
-
-  final BottomNavigationPage currentPage;
-  final ValueChanged<BottomNavigationPage> onChanged;
   final VoidCallback? onCenterTap;
 
   @override
   Widget build(BuildContext context) {
-    final tabs = BottomNavigationPage.values;
-    final currentIndex = tabs.indexOf(currentPage);
+    return BlocBuilder<MainBloc, MainState>(
+      buildWhen:
+          (previous, current) => previous.currentPage != current.currentPage,
+      builder: (context, state) {
+        final bloc = context.read<MainBloc>();
+        final tabs = BottomNavigationPage.values;
+        final currentIndex = tabs.indexOf(state.currentPage);
 
-    return SizedBox(
-      height: 72,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Container(
-            height: 72,
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(20),
-                topRight: Radius.circular(20),
-              ),
-            ),
-            child: SafeArea(
-              top: false,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: _buildItemsWithGap(
-                  tabs: tabs,
-                  currentIndex: currentIndex,
-                  onChanged: onChanged,
+        return SizedBox(
+          height: 72,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                height: 72,
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(20),
+                    topRight: Radius.circular(20),
+                  ),
+                ),
+                child: SafeArea(
+                  top: false,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: _buildItemsWithGap(
+                      tabs: tabs,
+                      currentIndex: currentIndex,
+                      onChanged: (page) => bloc.add(OnChangeTabEvent(page)),
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ),
-          Positioned(
-            left: 0,
-            right: 0,
-            top: -28,
-            child: Center(
-              child: SizedBox(
-                width: 56,
-                height: 56,
-                child: FloatingActionButton(
-                  onPressed: onCenterTap,
-                  elevation: 2,
-                  backgroundColor: const Color(0xFFEFF8DD),
-                  shape: const CircleBorder(),
-                  child: const Icon(Icons.add, color: Colors.black),
+              Positioned(
+                left: 0,
+                right: 0,
+                top: -28,
+                child: Center(
+                  child: SizedBox(
+                    width: 56,
+                    height: 56,
+                    child: FloatingActionButton(
+                      onPressed: onCenterTap,
+                      elevation: 2,
+                      backgroundColor: const Color(0xFFEFF8DD),
+                      shape: const CircleBorder(),
+                      child: const Icon(Icons.add, color: Colors.black),
+                    ),
+                  ),
                 ),
               ),
-            ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
