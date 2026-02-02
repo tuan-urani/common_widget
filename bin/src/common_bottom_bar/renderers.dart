@@ -59,8 +59,8 @@ String renderMainPageFromTemplate({
       ..writeln('             // will replace by onGenerateRoute later')
       ..writeln('             builder: (_) => const SizedBox.shrink(),')
       ..writeln('      //       onGenerateRoute: ${pascal}Router.onGenerateRoute,')
-      ..writeln('      //     ),')
-      ..writeln('      //   );')
+      ..writeln('           ),')
+      ..writeln('         );')
       ..writeln('         break;');
   }
 
