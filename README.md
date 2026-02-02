@@ -52,6 +52,22 @@ dart run common_widget:common_bottom_bar --type standard --tabs home,user,settin
 
 ### Output
 
-- `bottom_navigation_page.dart` → `Project/lib/src/enums/`
-- Thư mục `main` (UI của bottom bar) → `Project/lib/src/ui/`
-- Thư mục `routing` → `Project/lib/src/ui/`
+Sẽ tạo sẵn template bottom bar với cấu trúc sau:
+
+- Enum tabs:
+  - `Project/lib/src/enums/bottom_navigation_page.dart`
+- Main (UI + state cho bottom bar):
+  - `Project/lib/src/ui/main/main_page.dart`
+  - `Project/lib/src/ui/main/components/app_bottom_navigation_bar.dart`
+  - `Project/lib/src/ui/main/bloc/main_bloc.dart`
+  - `Project/lib/src/ui/main/bloc/main_event.dart`
+  - `Project/lib/src/ui/main/bloc/main_state.dart`
+  - `Project/lib/src/ui/main/binding/main_binding.dart`
+- Routing cho bottom bar:
+  - `Project/lib/src/ui/routing/common_router.dart`
+  - `Project/lib/src/ui/routing/<tab>_router.dart` (tạo theo `--tabs`, ví dụ: `home_router.dart`, `user_router.dart`, `settings_router.dart`)
+
+Việc bạn cần làm để sử dụng bottom bar theo ý mình:
+
+1. Trong `main_page.dart`: tại function `_createPage`, thay `builder: (_) => const SizedBox.shrink()` thành `onGenerateRoute: {tabRouter}.onGenerateRoute,` (ví dụ: `onGenerateRoute: HomeRouter.onGenerateRoute,`).
+2. Thay thế icon trong `app_bottom_navigation_bar.dart` thành icon của tab tương ứng.
