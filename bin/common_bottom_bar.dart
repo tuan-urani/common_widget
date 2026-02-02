@@ -384,8 +384,8 @@ String _renderMainPageFromTemplate({
   required List<String> tabs,
 }) {
   final switchLines = StringBuffer()
-    ..writeln('    final bloc = context.read<MainBloc>();')
-    ..writeln('    switch (currentPage) {');
+    ..writeln('  //  final bloc = context.read<MainBloc>();')
+    ..writeln(' //   switch (currentPage) {');
 
   for (var i = 0; i < tabs.length; i++) {
     final tab = tabs[i];
@@ -405,7 +405,7 @@ String _renderMainPageFromTemplate({
       ..writeln('      //   break;');
   }
 
-  switchLines.writeln('    }');
+  switchLines.writeln('  //  }');
 
   final rendered = template.replaceAll(
     '__CREATE_PAGE_SWITCH__',
