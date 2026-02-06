@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:link_home/src/utils/app_assets.dart';
 import 'package:link_home/src/utils/app_colors.dart';
 import 'package:link_home/src/utils/app_styles.dart';
@@ -17,9 +18,15 @@ class AppInput extends StatefulWidget {
   final TextStyle? labelTextStyle;
   final bool isPassword;
   final bool isDisabledTyping;
+  final bool isRequired;
   final Widget? suffixIcon;
   final Widget? prefixIcon;
   final VoidCallback? onPressed;
+  final ValueChanged<String>? onChanged;
+  final Color? fillColor;
+  final Color? borderColor;
+  final EdgeInsetsGeometry? contentPadding;
+  final EdgeInsetsGeometry? prefixIconPadding;
 
   const AppInput({
     super.key,
@@ -38,8 +45,14 @@ class AppInput extends StatefulWidget {
     this.prefixIcon,
     this.suffixIcon,
     this.isDisabledTyping = false,
+    this.isRequired = false,
 
     this.onPressed,
+    this.onChanged,
+    this.fillColor,
+    this.borderColor,
+    this.contentPadding,
+    this.prefixIconPadding,
   });
 
   @override
@@ -68,8 +81,10 @@ class _AppInputState extends State<AppInput> {
   Widget build(BuildContext context) {
     final bool isFocused = _focusNode.hasFocus;
 
+    final Color enabledBorderColor =
+        widget.borderColor ?? AppColors.colorB8BCC6;
     final Color borderColor =
-        isFocused ? AppColors.primary : AppColors.colorB8BCC6;
+        isFocused ? AppColors.primary : enabledBorderColor;
 
     final Color labelColor =
         isFocused ? AppColors.primary : AppColors.color667394;
@@ -95,9 +110,23 @@ class _AppInputState extends State<AppInput> {
         maxLines: widget.isPassword ? 1 : widget.maxLines,
 
         decoration: InputDecoration(
-          labelText: widget.label,
-          labelStyle:
-              widget.labelStyle ?? AppStyles.bodyMedium(color: labelColor),
+          label:
+              widget.label != null
+                  ? Row(
+                    spacing: 2,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        widget.label!,
+                        style:
+                            widget.labelStyle ??
+                            AppStyles.bodyMedium(color: labelColor),
+                      ),
+                      if (widget.isRequired)
+                        SvgPicture.asset(AppAssets.iconsInputRequiredSvg),
+                    ],
+                  )
+                  : null,
           floatingLabelBehavior: FloatingLabelBehavior.always,
 
           isCollapsed: true,
@@ -107,16 +136,17 @@ class _AppInputState extends State<AppInput> {
           border: InputBorder.none,
 
           filled: true,
-          fillColor: Colors.white,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 20,
-          ),
+          fillColor: widget.fillColor ?? AppColors.white,
+          contentPadding:
+              widget.contentPadding ??
+              const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
 
           prefixIcon:
               widget.prefixIcon != null
                   ? Padding(
-                    padding: const EdgeInsets.only(left: 12, right: 8),
+                    padding:
+                        widget.prefixIconPadding ??
+                        const EdgeInsets.only(left: 12, right: 8),
                     child: widget.prefixIcon,
                   )
                   : null,
@@ -127,7 +157,15 @@ class _AppInputState extends State<AppInput> {
           suffixIcon:
               widget.isPassword
                   ? IconButton(
-                    icon: _obscure ? Icon(Icons.visibility_off) : Icon(Icons.visibility),
+                    icon: SvgPicture.asset(
+                      _obscure
+                          ? AppAssets.iconsHideEyeSvg
+                          : AppAssets.iconsShowEyeSvg,
+                      colorFilter: ColorFilter.mode(
+                        AppColors.color1C274C,
+                        BlendMode.srcIn,
+                      ),
+                    ),
                     onPressed: () => setState(() => _obscure = !_obscure),
                   )
                   : widget.suffixIcon != null

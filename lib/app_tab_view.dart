@@ -112,12 +112,15 @@ class _AppTabViewState extends State<AppTabView>
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    widget.title,
-                    style: isActive ? widget.titleActive : widget.titleInActive,
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  Flexible(
+                    child: Text(
+                      widget.title,
+                      style:
+                          isActive ? widget.titleActive : widget.titleInActive,
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                   if (widget.badge != null) ...[6.width, widget.badge!],
                 ],

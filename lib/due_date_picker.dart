@@ -1,7 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
+import 'package:link_home/src/locale/locale_key.dart';
 import 'package:link_home/src/extensions/int_extensions.dart';
+import 'package:link_home/src/locale/locale_key.dart';
 import 'package:link_home/src/utils/app_colors.dart';
+import 'package:link_home/src/utils/app_styles.dart';
 
 /// Hiển thị Cupertino Date Picker trong bottom sheet iOS-style bằng GetX.
 ///
@@ -30,14 +33,14 @@ Future<void> showCupertinoDatePickerBottomSheet({
               children: [
                 CupertinoButton(
                   padding: 16.paddingHorizontal,
-                  child: const Text('Cancel'),
+                  child: Text(LocaleKey.widgetCancel.tr),
                   onPressed: () => Get.back(),
                 ),
                 CupertinoButton(
                   padding: 16.paddingHorizontal,
-                  child: const Text(
-                    'Done',
-                    style: TextStyle(fontWeight: FontWeight.w600),
+                  child: Text(
+                    LocaleKey.widgetConfirm.tr,
+                    style: AppStyles.buttonMedium(fontWeight: FontWeight.w600),
                   ),
                   onPressed: () {
                     Get.back();

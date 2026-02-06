@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:link_home/src/utils/app_colors.dart';
 
@@ -38,7 +40,7 @@ class AppProgressBar extends StatelessWidget {
         tween: Tween<double>(begin: 0, end: value),
         duration: const Duration(milliseconds: 500),
         builder: (context, animValue, child) {
-          final currentWidth = (width * animValue) - (padding ?? 6);
+          final currentWidth = max(0.0, (width * animValue) - (padding ?? 6));
           return Stack(
             children: [
               AnimatedContainer(
@@ -46,7 +48,7 @@ class AppProgressBar extends StatelessWidget {
                 width: currentWidth + (padding ?? 6),
                 height: height,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.white,
                   borderRadius: radius,
                 ),
                 child: Center(
@@ -70,7 +72,7 @@ class AppProgressBar extends StatelessWidget {
                     width: widthDot,
                     height: heightDot,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: AppColors.white,
                       borderRadius: BorderRadius.circular(5),
                     ),
                   ),

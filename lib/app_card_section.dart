@@ -8,6 +8,7 @@ class AppCardSection extends StatelessWidget {
   final EdgeInsetsGeometry padding;
   final EdgeInsetsGeometry? margin;
   final List<BoxShadow>? boxShadow;
+  final BoxBorder? border;
   final Widget child;
 
   const AppCardSection({
@@ -18,6 +19,7 @@ class AppCardSection extends StatelessWidget {
     this.padding = AppDimensions.allMargins,
     this.margin,
     this.boxShadow,
+    this.border,
   });
 
   @override
@@ -29,6 +31,7 @@ class AppCardSection extends StatelessWidget {
         color: color,
         borderRadius: borderRadius,
         boxShadow: boxShadow,
+        border: border,
       ),
       child: child,
     );
