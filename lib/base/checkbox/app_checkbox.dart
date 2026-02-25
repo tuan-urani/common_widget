@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:link_home/src/extensions/int_extensions.dart';
-import 'package:link_home/src/utils/app_assets.dart';
-import 'package:link_home/src/utils/app_colors.dart';
-import 'package:link_home/src/utils/app_dimensions.dart';
-import 'package:link_home/src/utils/app_styles.dart';
+import 'package:linkhome/src/extensions/int_extensions.dart';
+import 'package:linkhome/src/utils/app_assets.dart';
+import 'package:linkhome/src/utils/app_colors.dart';
+import 'package:linkhome/src/utils/app_dimensions.dart';
+import 'package:linkhome/src/utils/app_styles.dart';
 
 class AppCheckbox extends StatelessWidget {
   final String title;
@@ -55,10 +55,19 @@ class AppCheckbox extends StatelessWidget {
             SizedBox(
               width: iconSize,
               height: iconSize,
-              child:
-                  checked
-                      ? iconCheck ?? SvgPicture.asset(AppAssets.iconsCheckboxActiveSvg)
-                      : iconUncheck ?? SvgPicture.asset(AppAssets.iconsCheckboxUnactiveSvg),
+              child: checked
+                  ? iconCheck ??
+                        Icon(
+                          Icons.check,
+                          color: AppColors.primary,
+                          size: iconSize,
+                        )
+                  : iconUncheck ??
+                        Icon(
+                          Icons.check_box_outline_blank,
+                          color: AppColors.colorDFE4F5,
+                          size: iconSize,
+                        ),
             ),
             spacing.toInt().width,
             Text(
